@@ -202,42 +202,42 @@ TEST(IntegerPolyhedronTest, FindSampleTest) {
   // Bounded sets with only inequalities.
   // 0 <= 7x <= 5
   checkSample(true,
-              parseIntegerPolyhedron("(x) : (7 * x >= 0, -7 * x + 5 >= 0)"));
+              parseIntegerPolyhedron("(x) : (7 * x >= 0, 7 * x <= 5)"));
 
   // 1 <= 5x and 5x <= 4 (no solution).
   checkSample(
-      false, parseIntegerPolyhedron("(x) : (5 * x - 1 >= 0, -5 * x + 4 >= 0)"));
+      false, parseIntegerPolyhedron("(x) : (5 * x >= 1, 5 * x <= -4)"));
 
   // 1 <= 5x and 5x <= 9 (solution: x = 1).
   checkSample(
-      true, parseIntegerPolyhedron("(x) : (5 * x - 1 >= 0, -5 * x + 9 >= 0)"));
+      true, parseIntegerPolyhedron("(x) : (5 * x >= 1, 9 >= 5 * x)"));
 
   // Bounded sets with equalities.
   // x >= 8 and 40 >= y and x = y.
   checkSample(true, parseIntegerPolyhedron(
-                        "(x,y) : (x - 8 >= 0, -y + 40 >= 0, x - y == 0)"));
+                        "(x,y) : (x >= 8, y <= 40, x == y)"));
 
   // x <= 10 and y <= 10 and 10 <= z and x + 2y = 3z.
   // solution: x = y = z = 10.
   checkSample(true,
-              parseIntegerPolyhedron("(x,y,z) : (-x + 10 >= 0, -y + 10 >= 0, "
-                                     "z - 10 >= 0, x + 2 * y - 3 * z == 0)"));
+              parseIntegerPolyhedron("(x,y,z) : (x <= 10, y <= 10, "
+                                     "z >= 10, x + 2 * y - 3 * z == 0)"));
 
   // x <= 10 and y <= 10 and 11 <= z and x + 2y = 3z.
   // This implies x + 2y >= 33 and x + 2y <= 30, which has no solution.
   checkSample(false,
-              parseIntegerPolyhedron("(x,y,z) : (-x + 10 >= 0, -y + 10 >= 0, "
-                                     "z - 11 >= 0, x + 2 * y - 3 * z == 0)"));
+              parseIntegerPolyhedron("(x,y,z) : ( x <= 10, y <= 10, "
+                                     "z >= 11, x + 2 * y - 3 * z == 0)"));
 
   // 0 <= r and r <= 3 and 4q + r = 7.
   // Solution: q = 1, r = 3.
   checkSample(true, parseIntegerPolyhedron(
-                        "(q,r) : (r >= 0, -r + 3 >= 0, 4 * q + r - 7 == 0)"));
+                        "(q,r) : (r >= 0, r <= 3, 4 * q + r == 7)"));
 
   // 4q + r = 7 and r = 0.
   // Solution: q = 1, r = 3.
   checkSample(false,
-              parseIntegerPolyhedron("(q,r) : (4 * q + r - 7 == 0, r == 0)"));
+              parseIntegerPolyhedron("(q,r) : (4 * q + r == 7, r == 0)"));
 
   // The next two sets are large sets that should take a long time to sample
   // with a naive branch and bound algorithm but can be sampled efficiently with
@@ -246,8 +246,8 @@ TEST(IntegerPolyhedronTest, FindSampleTest) {
   // This is a triangle with vertices at (1/3, 0), (2/3, 0) and (10000, 10000).
   checkSample(
       true, parseIntegerPolyhedron("(x,y) : (y >= 0, "
-                                   "300000 * x - 299999 * y - 100000 >= 0, "
-                                   "-300000 * x + 299998 * y + 200000 >= 0)"));
+                                   "300000 * x - 299999 * y >= 100000, "
+                                   "300000 * x - 299998 * y <= 200000)"));
 
   // This is a tetrahedron with vertices at
   // (1/3, 0, 0), (2/3, 0, 0), (2/3, 0, 10000), and (10000, 10000, 10000).
@@ -268,9 +268,9 @@ TEST(IntegerPolyhedronTest, FindSampleTest) {
   checkSample(true,
               parseIntegerPolyhedron(
                   "(a,b,c,d,e) : (b + d - e >= 0, -b + c - d + e >= 0, "
-                  "300000 * a - 299998 * b - c - 9 * d + 21 * e - 112000 >= 0, "
-                  "-150000 * a + 149999 * b - 15 * d + 47 * e + 68000 >= 0, "
-                  "d - e == 0, d + e - 2000 == 0)"));
+                  "300000 * a - 299998 * b - c - 9 * d + 21 * e >= 112000, "
+                  "150000 * a - 149999 * b + 15 * d - 47 * e <= 68000, "
+                  "d == e, d + e == 2000)"));
 
   // This is a tetrahedron with vertices at
   // (1/3, 0, 0), (2/3, 0, 0), (2/3, 0, 100), (100, 100 - 1/3, 100).
@@ -289,22 +289,22 @@ TEST(IntegerPolyhedronTest, FindSampleTest) {
   // This is a line segment from (0, 1/3) to (100, 100 + 1/3).
   checkSample(false,
               parseIntegerPolyhedron(
-                  "(x,y) : (x >= 0, -x + 100 >= 0, 3 * x - 3 * y + 1 == 0)"));
+                  "(x,y) : (x >= 0, x <= 100, 3 * x == 3 * y - 1)"));
 
   // A thin parallelogram. 0 <= x <= 100 and x + 1/3 <= y <= x + 2/3.
   checkSample(false, parseIntegerPolyhedron(
                          "(x,y) : (x >= 0, -x + 100 >= 0, "
-                         "3 * x - 3 * y + 2 >= 0, -3 * x + 3 * y - 1 >= 0)"));
+                         "3 * x >= 3 * y - 2, 3 * x <= 3 * y - 1 )"));
 
   checkSample(true,
-              parseIntegerPolyhedron("(x,y) : (2 * x >= 0, -2 * x + 99 >= 0, "
-                                     "2 * y >= 0, -2 * y + 99 >= 0)"));
+              parseIntegerPolyhedron("(x,y) : (2 * x >= 0, 2 * x <= 99, "
+                                     "2 * y >= 0, 2 * y <= 99)"));
 
   // 2D cone with apex at (10000, 10000) and
   // edges passing through (1/3, 0) and (2/3, 0).
   checkSample(true, parseIntegerPolyhedron(
-                        "(x,y) : (300000 * x - 299999 * y - 100000 >= 0, "
-                        "-300000 * x + 299998 * y + 200000 >= 0)"));
+                        "(x,y) : (300000 * x >= 299999 * y + 100000, "
+                        "300000 * x <= 299998 * y + 200000)"));
 
   // Cartesian product of a tetrahedron and a 2D cone.
   // The tetrahedron has vertices at
@@ -418,48 +418,48 @@ TEST(IntegerPolyhedronTest, FindSampleTest) {
                           {});
 
   checkSample(true, parseIntegerPolyhedron(
-                        "(x, y, z) : (2 * x - 1 >= 0, x - y - 1 == 0, "
-                        "y - z == 0)"));
+                        "(x, y, z) : (2 * x >= 1, x == y + 1, "
+                        "y == z)"));
 
   // Test with a local id.
   checkSample(true, parseIntegerPolyhedron("(x) : (x == 5*(x floordiv 2))"));
 
   // Regression tests for the computation of dual coefficients.
   checkSample(false, parseIntegerPolyhedron("(x, y, z) : ("
-                                            "6*x - 4*y + 9*z + 2 >= 0,"
+                                            "6*x + 9*z + 2 >= 4*y,"
                                             "x + 5*y + z + 5 >= 0,"
-                                            "-4*x + y + 2*z - 1 >= 0,"
-                                            "-3*x - 2*y - 7*z - 1 >= 0,"
-                                            "-7*x - 5*y - 9*z - 1 >= 0)"));
+                                            "4*x + 1 <= y + 2*z ,"
+                                            "3*x + 2*y + 7*z + 1 <= 0,"
+                                            "7*x + 5*y + 9*z + 1 <= 0)"));
   checkSample(true, parseIntegerPolyhedron("(x, y, z) : ("
                                            "3*x + 3*y + 3 >= 0,"
-                                           "-4*x - 8*y - z + 4 >= 0,"
-                                           "-7*x - 4*y + z + 1 >= 0,"
-                                           "2*x - 7*y - 8*z - 7 >= 0,"
-                                           "9*x + 8*y - 9*z - 7 >= 0)"));
+                                           "4*x + 8*y + z <= 4,"
+                                           "7*x + 4*y <= z + 1,"
+                                           "2*x >= 7*y + 8*z + 7,"
+                                           "9*x + 8*y >= 9*z + 7)"));
 }
 
 TEST(IntegerPolyhedronTest, IsIntegerEmptyTest) {
   // 1 <= 5x and 5x <= 4 (no solution).
-  EXPECT_TRUE(parseIntegerPolyhedron("(x) : (5 * x - 1 >= 0, -5 * x + 4 >= 0)")
+  EXPECT_TRUE(parseIntegerPolyhedron("(x) : (5 * x >= 1, 5 * x <= 4)")
                   .isIntegerEmpty());
   // 1 <= 5x and 5x <= 9 (solution: x = 1).
-  EXPECT_FALSE(parseIntegerPolyhedron("(x) : (5 * x - 1 >= 0, -5 * x + 9 >= 0)")
+  EXPECT_FALSE(parseIntegerPolyhedron("(x) : (5 * x >= 1, 5 * x <= 9)")
                    .isIntegerEmpty());
 
   // Unbounded sets.
   EXPECT_TRUE(
-      parseIntegerPolyhedron("(x,y,z) : (2 * y - 1 >= 0, -2 * y + 1 >= 0, "
-                             "2 * z - 1 >= 0, 2 * x - 1 == 0)")
+      parseIntegerPolyhedron("(x,y,z) : (2 * y >= 1, 2 * y <= 1, "
+                             "2 * z >= 1, 2 * x == 1)")
           .isIntegerEmpty());
 
   EXPECT_FALSE(parseIntegerPolyhedron(
-                   "(x,y,z) : (2 * x - 1 >= 0, -3 * x + 3 >= 0, "
-                   "5 * z - 6 >= 0, -7 * z + 17 >= 0, 3 * y - 2 >= 0)")
+                   "(x,y,z) : (2 * x >= 1, 3 * x <= 3, "
+                   "5 * z >= 6, 7 * z <= 17, 3 * y >= 2)")
                    .isIntegerEmpty());
 
   EXPECT_FALSE(parseIntegerPolyhedron(
-                   "(x,y,z) : (2 * x - 1 >= 0, x - y - 1 == 0, y - z == 0)")
+                   "(x,y,z) : (2 * x >= 1, x == y + 1, y == z)")
                    .isIntegerEmpty());
 
   // IntegerPolyhedron::isEmpty() does not detect the following sets to be
@@ -468,16 +468,16 @@ TEST(IntegerPolyhedronTest, IsIntegerEmptyTest) {
   // 3x + 7y = 1 and 0 <= x, y <= 10.
   // Since x and y are non-negative, 3x + 7y can never be 1.
   EXPECT_TRUE(parseIntegerPolyhedron(
-                  "(x,y) : (x >= 0, -x + 10 >= 0, y >= 0, -y + 10 >= 0, "
-                  "3 * x + 7 * y - 1 == 0)")
+                  "(x,y) : (x >= 0, x <= 10, y >= 0, y <= 10, "
+                  "3 * x + 7 * y == 1)")
                   .isIntegerEmpty());
 
   // 2x = 3y and y = x - 1 and x + y = 6z + 2 and 0 <= x, y <= 100.
   // Substituting y = x - 1 in 3y = 2x, we obtain x = 3 and hence y = 2.
   // Since x + y = 5 cannot be equal to 6z + 2 for any z, the set is empty.
   EXPECT_TRUE(parseIntegerPolyhedron(
-                  "(x,y,z) : (x >= 0, -x + 100 >= 0, y >= 0, -y + 100 >= 0, "
-                  "2 * x - 3 * y == 0, x - y - 1 == 0, x + y - 6 * z - 2 == 0)")
+                  "(x,y,z) : (x >= 0, x <= 100, y >= 0, y <= 100, "
+                  "2 * x == 3 * y, x == y + 1, x + y == 6 * z + 2)")
                   .isIntegerEmpty());
 
   // 2x = 3y and y = x - 1 + 6z and x + y = 6q + 2 and 0 <= x, y <= 100.
@@ -487,18 +487,18 @@ TEST(IntegerPolyhedronTest, IsIntegerEmptyTest) {
   // x + y = 5 mod 6, which contradicts x + y = 6q + 2, so the set is empty.
   EXPECT_TRUE(
       parseIntegerPolyhedron(
-          "(x,y,z,q) : (x >= 0, -x + 100 >= 0, y >= 0, -y + 100 >= 0, "
-          "2 * x - 3 * y == 0, x - y + 6 * z - 1 == 0, x + y - 6 * q - 2 == 0)")
+          "(x,y,z,q) : (x >= 0, x <= 100, y >= 0, y <= 100, "
+          "2 * x == 3 * y, x + 6 * z == y + 1, x + y == 6 * q + 2)")
           .isIntegerEmpty());
 
   // Set with symbols.
-  EXPECT_FALSE(parseIntegerPolyhedron("(x)[s] : (x + s >= 0, x - s == 0)")
+  EXPECT_FALSE(parseIntegerPolyhedron("(x)[s] : (x >= -s, x == s)")
                    .isIntegerEmpty());
 }
 
 TEST(IntegerPolyhedronTest, removeRedundantConstraintsTest) {
   IntegerPolyhedron poly =
-      parseIntegerPolyhedron("(x) : (x - 2 >= 0, -x + 2 >= 0, x - 2 == 0)");
+      parseIntegerPolyhedron("(x) : (x >= 2, x <= 2, x == 2)");
   poly.removeRedundantConstraints();
 
   // Both inequalities are redundant given the equality. Both have been removed.
@@ -506,7 +506,7 @@ TEST(IntegerPolyhedronTest, removeRedundantConstraintsTest) {
   EXPECT_EQ(poly.getNumEqualities(), 1u);
 
   IntegerPolyhedron poly2 =
-      parseIntegerPolyhedron("(x,y) : (x - 3 >= 0, y - 2 >= 0, x - y == 0)");
+      parseIntegerPolyhedron("(x,y) : (x >= 3, y >= 2, x == y)");
   poly2.removeRedundantConstraints();
 
   // The second inequality is redundant and should have been removed. The
@@ -516,7 +516,7 @@ TEST(IntegerPolyhedronTest, removeRedundantConstraintsTest) {
   EXPECT_EQ(poly2.getNumEqualities(), 1u);
 
   IntegerPolyhedron poly3 =
-      parseIntegerPolyhedron("(x,y,z) : (x - y == 0, x - z == 0, y - z == 0)");
+      parseIntegerPolyhedron("(x,y,z) : (x == y, x == z, y == z)");
   poly3.removeRedundantConstraints();
 
   // One of the three equalities can be removed.
@@ -525,21 +525,21 @@ TEST(IntegerPolyhedronTest, removeRedundantConstraintsTest) {
 
   IntegerPolyhedron poly4 = parseIntegerPolyhedron(
       "(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) : ("
-      "b - 1 >= 0,"
-      "-b + 500 >= 0,"
-      "-16 * d + f >= 0,"
-      "f - 1 >= 0,"
-      "-f + 998 >= 0,"
-      "16 * d - f + 15 >= 0,"
-      "-16 * e + g >= 0,"
-      "g - 1 >= 0,"
-      "-g + 998 >= 0,"
-      "16 * e - g + 15 >= 0,"
+      "b >= 1,"
+      "b <= 500,"
+      "16 * d <= f,"
+      "f >= 1,"
+      "f <= 998,"
+      "16 * d + 15 >= f,"
+      "16 * e <= g,"
+      "g >= 1,"
+      "g <= 998,"
+      "16 * e + 15 >= g,"
       "h >= 0,"
-      "-h + 1 >= 0,"
-      "j - 1 >= 0,"
-      "-j + 500 >= 0,"
-      "-f + 16 * l + 15 >= 0,"
+      "h <= 1,"
+      "j >= 1,"
+      "500 >= j,"
+      "f <= 16 * l + 15 ,"
       "f - 16 * l >= 0,"
       "-16 * m + o >= 0,"
       "o - 1 >= 0,"
