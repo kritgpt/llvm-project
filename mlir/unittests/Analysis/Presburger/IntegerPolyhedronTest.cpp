@@ -540,27 +540,27 @@ TEST(IntegerPolyhedronTest, removeRedundantConstraintsTest) {
       "j >= 1,"
       "500 >= j,"
       "f <= 16 * l + 15 ,"
-      "f - 16 * l >= 0,"
-      "-16 * m + o >= 0,"
-      "o - 1 >= 0,"
-      "-o + 998 >= 0,"
-      "16 * m - o + 15 >= 0,"
+      "f >= 16 * l,"
+      "16 * m <= o,"
+      "o >= 1,"
+      "o <= 998,"
+      "16 * m + 15 >= o,"
       "p >= 0,"
-      "-p + 1 >= 0,"
-      "-g - h + 8 * q + 8 >= 0,"
-      "-o - p + 8 * q + 8 >= 0,"
-      "o + p - 8 * q - 1 >= 0,"
-      "g + h - 8 * q - 1 >= 0,"
-      "-f + n >= 0,"
-      "f - n >= 0,"
-      "k - 10 >= 0,"
-      "-k + 10 >= 0,"
-      "i - 13 >= 0,"
-      "-i + 13 >= 0,"
-      "c - 10 >= 0,"
-      "-c + 10 >= 0,"
-      "a - 13 >= 0,"
-      "-a + 13 >= 0"
+      "p <= 1,"
+      "g + h <= 8 * q + 8,"
+      "8 * q + 8 >= o + p,"
+      "o + p >= 8 * q + 1,"
+      "g + h >= 8 * q + 1,"
+      "f <= n,"
+      "f >= n,"
+      "k >= 10,"
+      "k <= 10,"
+      "i >= 13,"
+      "i <= 13,"
+      "c >= 10,"
+      "10 >= c <= 10,"
+      "a >= 13,"
+      "a <= 13"
       ")");
 
   // The above is a large set of constraints without any redundant constraints,
@@ -577,7 +577,7 @@ TEST(IntegerPolyhedronTest, removeRedundantConstraintsTest) {
   EXPECT_EQ(poly4.getNumEqualities(), nEq);
 
   IntegerPolyhedron poly5 = parseIntegerPolyhedron(
-      "(x,y) : (128 * x + 127 >= 0, -x + 7 >= 0, -128 * x + y >= 0, y >= 0)");
+      "(x,y) : (128 * x + 127 >= 0, x <= 7, 128 * x <= y, y >= 0)");
   // 128x + 127 >= 0  implies that 128x >= 0, since x has to be an integer.
   // (This should be caught by GCDTightenInqualities().)
   // So -128x + y >= 0 and 128x + 127 >= 0 imply y >= 0 since we have
@@ -704,7 +704,7 @@ TEST(IntegerPolyhedronTest, computeLocalReprRecursive) {
 
 TEST(IntegerPolyhedronTest, computeLocalReprTightUpperBound) {
   {
-    IntegerPolyhedron poly = parseIntegerPolyhedron("(i) : (i mod 3 - 1 >= 0)");
+    IntegerPolyhedron poly = parseIntegerPolyhedron("(i) : (i mod 3 >= 1)");
 
     // The set formed by the poly is:
     //        3q - i + 2 >= 0             <-- Division lower bound
@@ -740,7 +740,7 @@ TEST(IntegerPolyhedronTest, computeLocalReprTightUpperBound) {
 TEST(IntegerPolyhedronTest, computeLocalReprFromEquality) {
   {
     IntegerPolyhedron poly =
-        parseIntegerPolyhedron("(i, j, q) : (-4*q + i + j == 0)");
+        parseIntegerPolyhedron("(i, j, q) : (i + j == 4*q)");
     // Convert `q` to a local variable.
     poly.convertToLocal(VarKind::SetDim, 2, 3);
 
@@ -751,7 +751,7 @@ TEST(IntegerPolyhedronTest, computeLocalReprFromEquality) {
   }
   {
     IntegerPolyhedron poly =
-        parseIntegerPolyhedron("(i, j, q) : (4*q - i - j == 0)");
+        parseIntegerPolyhedron("(i, j, q) : (i + j == 4*q)");
     // Convert `q` to a local variable.
     poly.convertToLocal(VarKind::SetDim, 2, 3);
 
@@ -762,7 +762,7 @@ TEST(IntegerPolyhedronTest, computeLocalReprFromEquality) {
   }
   {
     IntegerPolyhedron poly =
-        parseIntegerPolyhedron("(i, j, q) : (3*q + i + j - 2 == 0)");
+        parseIntegerPolyhedron("(i, j, q) : (i + j + 3*q == 2)");
     // Convert `q` to a local variable.
     poly.convertToLocal(VarKind::SetDim, 2, 3);
 
@@ -776,7 +776,7 @@ TEST(IntegerPolyhedronTest, computeLocalReprFromEquality) {
 TEST(IntegerPolyhedronTest, computeLocalReprFromEqualityAndInequality) {
   {
     IntegerPolyhedron poly =
-        parseIntegerPolyhedron("(i, j, q, k) : (-3*k + i + j == 0, 4*q - "
+        parseIntegerPolyhedron("(i, j, q, k) : (i + j == 3*k, 4*q - "
                                "i - j + 2 >= 0, -4*q + i + j >= 0)");
     // Convert `q` and `k` to local variables.
     poly.convertToLocal(VarKind::SetDim, 2, 4);
